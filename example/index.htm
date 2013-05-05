@@ -1,0 +1,39 @@
+<!doctype html>
+<html ng-app="ExampleApp">
+<head>
+	<title>
+		HashKeyCopier - An AngularJS Utility Class
+	</title>
+</head>
+<body>
+
+	<h1>
+		HashKeyCopier - An AngularJS Utility Class
+	</h1>
+
+
+	<!-- Include the core framework libraries. -->
+	<script type="text/javascript" src="vendor/jquery/jquery-2.0.0.min.js"></script>
+	<script type="text/javascript" src="vendor/angular-1.0.4/angular.min.js"></script>
+
+	<!-- Include our HashKeyCopier module (adds our utility class to the dependency injection). -->
+	<script type="text/javascript" src="../lib/hash-key-copier.js"></script>
+
+	<!-- Define our demo application. -->
+	<script type="text/javascript">
+
+		var app = angular.module( "ExampleApp", [ "hashKeyCopier" ] );
+
+		app.run(
+			function( HashKeyCopier ) {
+
+				console.log( "App loaded without error." );
+				console.log( HashKeyCopier );
+
+			}
+		);
+
+	</script>
+
+</body>
+</html>
