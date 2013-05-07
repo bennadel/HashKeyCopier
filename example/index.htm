@@ -33,7 +33,28 @@
 			ng-repeat="friend in friendsWithoutCopy"
 			bn-log-dom-operation="withoutCopyCount">
 
-			{{ friend.name }} 
+			<strong>{{ friend.name }}</strong>
+
+			<!-- Include nicknames ONLY if they are available. -->
+			<span ng-switch="!! friend.nicknames">
+
+				<em ng-switch-when="true">
+
+					( aka.
+					<span 
+						ng-repeat="nickname in friend.nicknames"
+						bn-log-dom-operation="withoutCopyCount">
+						
+						{{ nickname.name }}
+
+						<span ng-show="! $last">,</span>
+
+					</span>
+					)
+
+				</em>
+
+			</span>
 
 			( Favorite Number: {{ friend.favoriteNumber }} )
 
@@ -56,7 +77,28 @@
 			ng-repeat="friend in friendsWithCopy"
 			bn-log-dom-operation="withCopyCount">
 
-			{{ friend.name }}
+			<strong>{{ friend.name }}</strong>
+
+			<!-- Include nicknames ONLY if they are available. -->
+			<span ng-switch="!! friend.nicknames">
+
+				<em ng-switch-when="true">
+
+					( aka.
+					<span 
+						ng-repeat="nickname in friend.nicknames"
+						bn-log-dom-operation="withCopyCount">
+
+						{{ nickname.name }}
+
+						<span ng-show="! $last">,</span>
+
+					</span>
+					)
+
+				</em>
+
+			</span>
 
 			( Favorite Number: {{ friend.favoriteNumber }} )
 
@@ -97,15 +139,33 @@
 					// DOM node does not get re-created.
 					var baseNumber = ( ( new Date() ).getTime() % 123 );
 
+					// When creating the friends data, use complex, nested structure to make
+					// sure that the hashKey copy operation goes deep.
 					var friends = [
 						{
 							id: 1,
 							name: "Tricia",
+							nicknames: [
+								{
+									id: 1,
+									name: "Trish"
+								},
+								{
+									id: 2,
+									name: "Tricialicious"
+								}
+							],
 							favoriteNumber: ( baseNumber * 1 )
 						},
 						{
 							id: 2,
 							name: "Joanna",
+							nicknames: [
+								{
+									id: 11,
+									name: "Jo"
+								}
+							],
 							favoriteNumber: ( baseNumber * 2 )
 						},
 						{
