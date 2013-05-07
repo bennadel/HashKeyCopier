@@ -15,5 +15,9 @@ to match an existing DOM node with an existing JavaScript object. It uses this
 key to know when it needs to re-build a DOM node; or, when it simply needs to 
 update the content of an existing DOM node.
 
+NOTE: I packaged this as its own module. I did this because I am not sure what
+the best practices are for distributing AngularJS classes. So, I went with a 
+module that has only one injectable. More likely, I would just copy the one 
+definition into my own app and rename it (as necessary).
 
 [1]: http://www.bennadel.com

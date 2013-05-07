@@ -1,0 +1,249 @@
+<!doctype html>
+<html ng-app="ExampleApp" ng-controller="AppController">
+<head>
+	<meta charset="utf-8" />
+	<meta name="author" content="Ben Nadel, ben@bennadel.com" />
+
+	<title>
+		HashKeyCopier - An AngularJS Utility Class
+	</title>
+</head>
+<body>
+
+	<h1>
+		HashKeyCopier - An AngularJS Utility Class
+	</h1>
+
+	<p>
+		<a ng-click="updateData()">Update Cached Data With Live Data</a>
+	</p>
+
+
+	<!--
+		In this first list, we're going to "update" the target data without copying 
+		over the hash-keys from the cached data to the "live" data. 
+	-->
+
+	<h2>
+		No Keys Copied ( DOM Operations: {{ domOperations.withoutCopyCount }} )
+	</h2>
+
+	<ul>
+		<li
+			ng-repeat="friend in friendsWithoutCopy"
+			bn-log-dom-operation="withoutCopyCount">
+
+			<strong>{{ friend.name }}</strong>
+
+			<!-- Include nicknames ONLY if they are available. -->
+			<span ng-switch="!! friend.nicknames">
+
+				<em ng-switch-when="true">
+
+					( aka.
+					<span 
+						ng-repeat="nickname in friend.nicknames"
+						bn-log-dom-operation="withoutCopyCount">
+						
+						{{ nickname.name }}
+
+						<span ng-show="! $last">,</span>
+
+					</span>
+					)
+
+				</em>
+
+			</span>
+
+			( Favorite Number: {{ friend.favoriteNumber }} )
+
+		</li>
+	</ul>
+
+
+	<!--
+		In this second list, we're going to use the hashKeyCopier to copy over the 
+		proprietary $$hashKey values from the cached data to the "live" data. Notice
+		that the number of "dom operations" is much less.
+	-->
+
+	<h2>
+		Hash Keys Copied ( DOM Operations: {{ domOperations.withCopyCount }} )
+	</h2>
+
+	<ul>
+		<li
+			ng-repeat="friend in friendsWithCopy"
+			bn-log-dom-operation="withCopyCount">
+
+			<strong>{{ friend.name }}</strong>
+
+			<!-- Include nicknames ONLY if they are available. -->
+			<span ng-switch="!! friend.nicknames">
+
+				<em ng-switch-when="true">
+
+					( aka.
+					<span 
+						ng-repeat="nickname in friend.nicknames"
+						bn-log-dom-operation="withCopyCount">
+
+						{{ nickname.name }}
+
+						<span ng-show="! $last">,</span>
+
+					</span>
+					)
+
+				</em>
+
+			</span>
+
+			( Favorite Number: {{ friend.favoriteNumber }} )
+
+		</li>
+	</ul>
+
+
+	<!-- Include the core framework libraries. -->
+	<script type="text/javascript" src="vendor/jquery/jquery-2.0.0.min.js"></script>
+	<script type="text/javascript" src="vendor/angular-1.0.4/angular.min.js"></script>
+
+	<!-- Include our HashKeyCopier module (adds our utility class to the dependency injection). -->
+	<script type="text/javascript" src="../lib/hash-key-copier.js"></script>
+
+	<!-- Define our demo application. -->
+	<script type="text/javascript">
+
+		// I am the AngularJS module for this example. The HashKeyCopier module is a 
+		// dependency so that the "HashKeyCopier" class is added as an injectable into
+		// the current application's dependency injection container.
+		var app = angular.module( "ExampleApp", [ "hashKeyCopier" ] );
+
+
+		// I am the main controller for the example.
+		app.controller(
+			"AppController",
+			function( $scope, HashKeyCopier ) {
+
+				// -- Controller Methods. ------------------- //
+
+
+				// I mock the retrieval of data from the server. I simply return data 
+				// and make not assumptions about how this data will be used.
+				function getFriends() {
+
+					// Used to create a "fake" random number. NOTE: We are creating the random
+					// number to demonstrate that data bindings will be updated even if the
+					// DOM node does not get re-created.
+					var baseNumber = ( ( new Date() ).getTime() % 123 );
+
+					// When creating the friends data, use complex, nested structure to make
+					// sure that the hashKey copy operation goes deep.
+					var friends = [
+						{
+							id: 1,
+							name: "Tricia",
+							nicknames: [
+								{
+									id: 1,
+									name: "Trish"
+								},
+								{
+									id: 2,
+									name: "Tricialicious"
+								}
+							],
+							favoriteNumber: ( baseNumber * 1 )
+						},
+						{
+							id: 2,
+							name: "Joanna",
+							nicknames: [
+								{
+									id: 11,
+									name: "Jo"
+								}
+							],
+							favoriteNumber: ( baseNumber * 2 )
+						},
+						{
+							id: 3, 
+							name: "Sarah",
+							favoriteNumber: ( baseNumber * 3 )
+						}
+					];
+
+					return( friends );
+
+				}
+
+
+				// -- Scope Methods. ------------------------ //
+
+
+				// I update the collections being used in the demo. Notice that one of 
+				// collections is done using straight reference; the other collection is
+				// updated using the hash-key-copy optimization.
+				$scope.updateData = function() {
+
+					// Standard collection copy.
+					$scope.friendsWithoutCopy = getFriends();
+
+					// Collection update performed using hash-key-copy optimization. In this
+					// case, I am using the existing collection as the "source" and the newly
+					// gotten friends collection as the "destination" into which the AngularJS
+					// "$$hashKey" values will be copied.
+					$scope.friendsWithCopy = HashKeyCopier.copyHashKeys( $scope.friendsWithCopy, getFriends() );
+
+				};
+
+
+				// -- Scope Properties. --------------------- //
+
+
+				// Initialize both collections with the same collection.
+				$scope.friendsWithoutCopy = getFriends();
+				$scope.friendsWithCopy = getFriends();
+
+				// Initialize the DOM operation counts. This works hand-in-hand with our 
+				// bnLogDomOperation directive.
+				$scope.domOperations = {
+					withoutCopyCount: 0,
+					withCopyCount: 0
+				};
+
+			}
+		);
+
+
+		// I simply log the number of times this directive has been linked to a DOM element
+		// by the AngularJS framework. We're looking at this as a sort of pseudo count for
+		// the number of DOM operations that AngularJS has to perform.
+		app.directive(
+			"bnLogDomOperation",
+			function() {
+
+				// I bind the DOM element to the directive behaviors.
+				function link( $scope, element, attributes ) {
+
+					var countKey = attributes.bnLogDomOperation;
+
+					$scope.domOperations[ countKey ]++;
+
+				}
+
+				// Return the directive configuration.
+				return({
+					link: link,
+					restrict: "A"
+				});
+
+			}
+		);
+
+	</script>
+
+</body>
+</html>
